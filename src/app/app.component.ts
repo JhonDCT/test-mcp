@@ -37,10 +37,6 @@ export class AppComponent implements OnInit {
       this.title = event.userId + ' ' + event.bookId;
     });
 
-    // markBookAsFavoriteUseCase.execute('1', '1');
-    // markBookAsFavoriteUseCase.execute('1', '2');
-    // markBookAsFavoriteUseCase.execute('2', '1');
-    // markBookAsFavoriteUseCase.execute('2', '3');
   }
 
   ngOnInit(): void {
