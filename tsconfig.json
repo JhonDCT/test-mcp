@@ -22,7 +22,15 @@
     "lib": [
       "ES2022",
       "dom"
-    ]
+    ],
+    "paths": {
+      // "ui-kit": [
+      //   "./dist/ui-kit"
+      // ]
+      "ui-kit": [
+        "./projects/ui-kit/src/public-api" // INFO: enable option watch
+      ]
+    }
   },
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,

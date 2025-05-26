@@ -1,0 +1,5 @@
+---
+triple:          'arm64-apple-darwin'
+binary-path:     '/Users/jhondeynercatacoratupa/projects/ng-projects/ng-manga-reader/src/app/estudiante'
+relocations:     []
+...
