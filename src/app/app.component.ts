@@ -1,4 +1,4 @@
- import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { User } from '../modules/user/domain/entity/user.entity';
 import { EventBus } from '../modules/user/infrastructure/event-bus';
 import { InMemoryBookRepository } from '../modules/user/infrastructure/implementations/in-memory-book.repository';
@@ -9,7 +9,6 @@ import { BookAddedToFavoritesEvent } from '../modules/user/domain/event/book_add
 import { MarkBookAsFavoriteUseCase } from '../modules/user/application/usecase/mark-book-as-favorite.usecase';
 import { MangaListComponent } from "./manga-list/manga-list.component";
 import { ResponsiveDirective } from './responsive.directive';
-import { OnInit } from '@angular/core';
 
 @Component({
   selector: 'app-root',
@@ -28,7 +27,7 @@ export class AppComponent implements OnInit {
   markBookAsFavoriteUseCase = new MarkBookAsFavoriteUseCase(this.favoritesService);
 
   constructor() {
-    this.userRepository.save(new User('1', 'Jhon', 'jhon@gmail.com', 'https://avatars.githubusercontent.com/u/101043?v=4'));
+    this.userRepository.save(User.create('1', 'Jhon', 'jhon@gmail.com', 'https://avatars.githubusercontent.com/u/101043?v=4'));
     this.bookRepository.save(new Book('1', 'Jhon'));
     this.bookRepository.save(new Book('2', 'Deyner'));
 
@@ -36,7 +35,6 @@ export class AppComponent implements OnInit {
       console.log(event.userId, event.bookId);
       this.title = event.userId + ' ' + event.bookId;
     });
-
   }
 
   ngOnInit(): void {
