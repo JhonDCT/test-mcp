@@ -1,0 +1,444 @@
+#include <iostream>
+#include <conio.h>
+
+#define ANCHO_PANTALLA 100 // 90
+#define ALTO_PANTALLA 26 // 26
+#define ANCHO_BORDE 17
+#define VELOCIDAD_INICIAL 50
+#define VELOCIDAD_MINIMA 10
+
+int velocidad = 50;
+int puntosGanados = 10;
+int puntosPerdidos = 10;
+int bonusVelocidadPowerUp = 5;
+int bonusVelocidadPowerDown = 10;
+
+using namespace std;
+using namespace System;
+
+void goTo(int x, int y) {
+    Console::SetCursorPosition(x, y);
+}
+
+int enemigosX[3];
+int enemigosY[3];
+bool enemigosFlag[3];
+
+int powerUpX[3];
+int powerUpY[3];
+bool powerUpFlag[3];
+
+int powerDownX[3];
+int powerDownY[3];
+bool powerDownFlag[3];
+
+int posicionCarro = ANCHO_PANTALLA / 2;
+
+const int anchoCarro = 4;
+const int altoCarro = 4;
+
+int puntos = 0;
+
+char enemigo[anchoCarro][altoCarro] = { '|','-','-','|',
+                                        ' ','|','|',' ',
+                                        '|','-','-','|',
+                                        '-','|','|','-' };
+
+char powerUp[anchoCarro][altoCarro] = { '<','-','-','>',
+                                        '|','U','P','|',
+                                        '|','U','P','|',
+                                        '<','-','-','>' };
+
+char powerDown[anchoCarro][altoCarro] = { '<','-','-','>',
+                                          '|','D','W','|',
+                                          '|','D','W','|',
+                                          '<','-','-','>' };
+
+char carro[anchoCarro][altoCarro] = { ' ','-','-',' ',
+                                      '|','*','*','|',
+                                      ' ','*','*',' ',
+                                      '|','-','-','|' };
+
+void generarEnemigo(int indice) {
+    int espacioPista = ANCHO_PANTALLA - ANCHO_BORDE * 2;
+    enemigosX[indice] = ANCHO_BORDE + rand() % (espacioPista - anchoCarro);
+}
+
+void dibujarEnemigo(int indice) {
+    if (enemigosFlag[indice] == false) {
+        return;
+    }
+
+    for (int i = 0; i < anchoCarro; i++) {
+        for (int j = 0; j < altoCarro; j++) {
+            goTo(enemigosX[indice] + j, enemigosY[indice] + i);
+            cout << enemigo[i][j];
+        }
+    }
+}
+
+void borrarEnemigo(int indice) {
+    if (enemigosFlag[indice] == false) {
+        return;
+    }
+
+    for (int i = 0; i < anchoCarro; i++) {
+        for (int j = 0; j < altoCarro; j++) {
+            goTo(enemigosX[indice] + j, enemigosY[indice] + i);
+            cout << " ";
+        }
+    }
+}
+
+void resetearEnemigo(int indice) {
+    borrarEnemigo(indice);
+    enemigosY[indice] = 1;
+    generarEnemigo(indice);
+}
+
+void moverEnemigo(int indice) {
+    if (enemigosFlag[indice] == true) {
+        if (enemigosY[indice] > ALTO_PANTALLA - altoCarro) {
+            resetearEnemigo(indice);
+        }
+
+        enemigosY[indice] += 1;
+    }
+}
+
+void generarPowerUp(int indice) {
+    int espacioPista = ANCHO_PANTALLA - ANCHO_BORDE * 2;
+    powerUpX[indice] = ANCHO_BORDE + rand() % (espacioPista - anchoCarro);
+}
+
+void dibujarPowerUp(int indice) {
+    if (powerUpFlag[indice] == false) {
+        return;
+    }
+
+    for (int i = 0; i < anchoCarro; i++) {
+        for (int j = 0; j < altoCarro; j++) {
+            goTo(powerUpX[indice] + j, powerUpY[indice] + i);
+            cout << powerUp[i][j];
+        }
+    }
+}
+
+void borrarPowerUp(int indice) {
+    if (powerUpFlag[indice] == false) {
+        return;
+    }
+
+    for (int i = 0; i < anchoCarro; i++) {
+        for (int j = 0; j < altoCarro; j++) {
+            goTo(powerUpX[indice] + j, powerUpY[indice] + i);
+            cout << " ";
+        }
+    }
+}
+
+void resetearPowerUp(int indice) {
+    borrarPowerUp(indice);
+    powerUpY[indice] = 1;
+    generarPowerUp(indice);
+}
+
+void moverPowerUp(int indice) {
+    if (powerUpFlag[indice] == true) {
+        if (powerUpY[indice] > ALTO_PANTALLA - altoCarro) {
+            resetearPowerUp(indice);
+        }
+
+        powerUpY[indice] += 1;
+    }
+}
+
+void moverCarro() {
+    if (kbhit()) {
+        char tecla = getch();
+
+        if (tecla == 'a' || tecla == 'A') {
+            if (posicionCarro > ANCHO_BORDE) {
+                posicionCarro -= anchoCarro;
+            }
+        }
+
+        if (tecla == 'd' || tecla == 'D') {
+            if (posicionCarro < ANCHO_PANTALLA - ANCHO_BORDE - anchoCarro) {
+                posicionCarro += anchoCarro;
+            }
+        }
+    }
+}
+
+void dibujarCarro() {
+    for (int i = 0; i < anchoCarro; i++) {
+        for (int j = 0; j < altoCarro; j++) {
+            goTo(j + posicionCarro, i + ALTO_PANTALLA - altoCarro);
+            cout << carro[i][j];
+        }
+    }
+}
+
+void borrarCarro() {
+    for (int i = 0; i < anchoCarro; i++) {
+        for (int j = 0; j < altoCarro; j++) {
+            goTo(j + posicionCarro, i + ALTO_PANTALLA - altoCarro);
+            cout << " ";
+        }
+    }
+}
+
+bool colision(int indice) {
+    int posicionYEnemigo = (enemigosY[indice] + anchoCarro);
+    int distanciaEnemigoCarro = enemigosX[indice] - posicionCarro;
+
+    if (posicionYEnemigo >= ALTO_PANTALLA - altoCarro) {
+        if (distanciaEnemigoCarro + anchoCarro >= 0 && distanciaEnemigoCarro <= anchoCarro) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool colisionPowerUp(int indice) {
+    int posicionYPowerUp = (powerUpY[indice] + anchoCarro);
+    int distanciaPowerUpCarro = powerUpX[indice] - posicionCarro;
+
+    if (posicionYPowerUp >= ALTO_PANTALLA - altoCarro) {
+        if (distanciaPowerUpCarro + anchoCarro >= 0 && distanciaPowerUpCarro <= anchoCarro) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool colisionPowerDown(int indice) {
+    int posicionYPowerDown = (powerDownY[indice] + anchoCarro);
+    int distanciaPowerDownCarro = powerDownX[indice] - posicionCarro;
+
+    if (posicionYPowerDown >= ALTO_PANTALLA - altoCarro) {
+        if (distanciaPowerDownCarro + anchoCarro >= 0 && distanciaPowerDownCarro <= anchoCarro) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+void generarPowerUp(int indice) {
+    int espacioPista = ANCHO_PANTALLA - ANCHO_BORDE * 2;
+    powerUpX[indice] = ANCHO_BORDE + rand() % (espacioPista - anchoCarro);
+}
+
+void dibujarPowerUp(int indice) {
+    if (powerUpFlag[indice] == false) {
+        return;
+    }
+
+    for (int i = 0; i < anchoCarro; i++) {
+        for (int j = 0; j < altoCarro; j++) {
+            goTo(powerUpX[indice] + j, powerUpY[indice] + i);
+            cout << powerUp[i][j];
+        }
+    }
+}
+
+void borrarPowerUp(int indice) {
+    if (powerUpFlag[indice] == false) {
+        return;
+    }
+
+    for (int i = 0; i < anchoCarro; i++) {
+        for (int j = 0; j < altoCarro; j++) {
+            goTo(powerUpX[indice] + j, powerUpY[indice] + i);
+            cout << " ";
+        }
+    }
+}
+
+void resetearPowerUp(int indice) {
+    borrarPowerUp(indice);
+    powerUpY[indice] = 1;
+    generarPowerUp(indice);
+}
+
+void moverPowerUp(int indice) {
+    if (powerUpFlag[indice] == true) {
+        if (powerUpY[indice] > ALTO_PANTALLA - altoCarro) {
+            resetearPowerUp(indice);
+        }
+
+        powerUpY[indice] += 1;
+    }
+}
+
+void dibujarBordes() {
+    for (int i = 0; i < ALTO_PANTALLA; i++) {
+        for (int j = 0; j < ANCHO_BORDE; j++) {
+            goTo(j, i);
+            cout << "?";
+            goTo(ANCHO_PANTALLA - j, i);
+            cout << "?";
+        }
+    }
+}
+
+void actualizarPuntos() {
+    goTo(ANCHO_PANTALLA, ALTO_PANTALLA - 3);
+    cout << "\t\t----------------" << endl;
+    goTo(ANCHO_PANTALLA, ALTO_PANTALLA - 2);
+    cout << "\t\t- Puntos: " << puntos << " -" << endl;
+    goTo(ANCHO_PANTALLA, ALTO_PANTALLA - 1);
+    cout << "\t\t----------------" << endl << endl;
+}
+
+void gameOver() {
+    Console::Clear();
+    Console::ForegroundColor = ConsoleColor::Red;
+    cout << endl;
+    cout << "\t\t--------------------------------------------" << endl;
+    cout << "\t\t---------------- Game Over -----------------" << endl;
+    cout << "\t\t--------------------------------------------" << endl << endl;
+    cout << "\t\t---------- Puntos obtenidos: " << puntos << " ----------" << endl << endl;
+    cout << "\t\tPresiona cualquier tecla para salir al menu.";
+    getch();
+    Console::ForegroundColor = ConsoleColor::White;
+}
+
+void jugar() {
+    enemigosFlag[0] = true;
+    enemigosFlag[1] = false;
+    enemigosY[0] = 1;
+    enemigosY[1] = 1;
+
+    powerUpFlag[0] = true;
+    powerDownFlag[0] = true;
+
+    powerUpY[0] = 1;
+    powerDownY[0] = 1;
+    
+    Console::Clear();
+
+    dibujarBordes();
+
+    actualizarPuntos();
+
+    generarEnemigo(0);
+    generarEnemigo(1);
+
+    generarPowerUp(0);
+    generarPowerDown(0);
+
+    while (true) {        
+        moverCarro();
+
+        dibujarCarro();
+
+        dibujarEnemigo(0);
+        dibujarEnemigo(1);
+
+        dibujarPowerUp(0);
+        dibujarPowerDown(0);
+
+        if (colision(0) == true || colision(1) == true) {
+            gameOver();
+
+            return;
+        }
+
+        if (colisionPowerUp(0) == true) {
+            Console::ForegroundColor = ConsoleColor::Green;
+
+            resetearPowerUp(0);
+            puntos += puntosGanados;
+
+            if (velocidad < VELOCIDAD_INICIAL) {
+                velocidad += bonusVelocidadPowerUp;
+            }
+
+            actualizarPuntos();
+        }
+
+        if (colisionPowerDown(0) == true) {
+            Console::ForegroundColor = ConsoleColor::Red;
+
+            resetearPowerDown(0);            
+            puntos -= puntosPerdidos;
+
+            if (velocidad > VELOCIDAD_MINIMA) {
+                velocidad -= bonusVelocidadPowerDown;
+            }
+
+            actualizarPuntos();
+        }
+
+		_sleep(velocidad);
+
+		borrarCarro();
+
+		borrarEnemigo(0);
+		borrarEnemigo(1);
+
+        borrarPowerUp(0);
+        borrarPowerDown(0);
+
+		if (enemigosY[0] == ALTO_PANTALLA / 2 - altoCarro) {
+			if (enemigosFlag[1] == false) {
+				enemigosFlag[1] = true;
+			}
+		}
+
+		moverEnemigo(0);
+		moverEnemigo(1);
+
+		moverPowerUp(0);
+        moverPowerDown(0);
+	}
+}
+
+void instrucciones() {
+    Console::Clear();
+
+    cout << "Instrucciones";
+    cout << "\n----------------";
+    cout << "\n Evite los automóviles moviéndose hacia la izquierda o hacia la derecha.";
+    cout << "\n\n Presiona 'a' para mover a la izquierda";
+    cout << "\n Presiona 'd' para mover a la derecha";
+    cout << "\n Presiona 'escape' para salir";
+    cout << "\n\nPresiona cualquier tecla para salir al menu";
+
+    getch();
+}
+
+void main() {
+	srand((unsigned)time(NULL));
+	Console::CursorVisible = false;
+
+    do {
+        Console::Clear();
+        goTo(10, 5); cout << " -------------------------- ";
+        goTo(10, 6); cout << " |        Car Game        | ";
+        goTo(10, 7); cout << " --------------------------";
+        goTo(10, 9); cout << "1. Iniciar juego";
+        goTo(10, 10); cout << "2. Instrucciones";
+        goTo(10, 11); cout << "3. Salir";
+        goTo(10, 13); cout << "Seleccionar opcion: ";
+        char op = getch();
+
+        if (op == '1') {
+            velocidad = VELOCIDAD_INICIAL;
+            jugar();
+        }
+        else if (op == '2') {
+            instrucciones();
+        }
+        else if (op == '3') {
+            exit(0);
+        }
+    } while (true);
+
+	system("pause>null");
+}
